@@ -11,20 +11,21 @@ namespace ImprovedNoise.Image
         /// A smaller increment: e.g. 0.01, 0.001 will create a smooth effect.
         /// A bigger increment: e.g. 1, 0.9 will create a rough.
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="increment"></param>
-        public GreyScaleImage(int width, int height, double increment) : base(width, height, increment)
+        /// <param name="noise">INoise</param>
+        /// <param name="width">int</param>
+        /// <param name="height">int</param>
+        /// <param name="increment">double</param>
+        public GreyScaleImage(INoise noise, int width, int height, double increment) : base(noise, width, height, increment)
         {
-
+            
         }
 
-        public override IPixelCreator PixelCreator { get; set; } = new MonoChrome();
+        public override IPixelCreator PixelCreator { get; } = new MonoChrome();
 
         protected override Rgba32 CreatePixel()
         {
             return PixelCreator.Create(
-                ImprovedPerlin.Noise(CurrentXAxis, CurrentYAxis)
+                NoiseAlgorithm.Noise(CurrentXAxis, CurrentYAxis)
             );
         }
     }

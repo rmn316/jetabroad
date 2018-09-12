@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 using ImprovedNoise.Pixel;
 
 namespace ImprovedNoise.test.Pixel

@@ -2,13 +2,13 @@
 
 namespace ImprovedNoise.Noise
 {
-    public class ImprovedPerlin
+    public class ImprovedPerlin : INoise
     {
         /// <summary>
         /// The permutation. Hash lookup table as defined by Ken Perlin.  This is a randomly
         /// arranged array of all numbers from 0-255 inclusive.
         /// </summary>
-        private static readonly int[] Permutation = { 151,160,137,91,90,15,
+        private readonly int[] _permutation = { 151,160,137,91,90,15,
             131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
             190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
             88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
@@ -26,23 +26,23 @@ namespace ImprovedNoise.Noise
         /// <summary>
         /// Doubled permutation to avoid overflow
         /// </summary>
-        private static readonly int[] P;
+        private readonly int[] _doubledPermutation;
 
-        static ImprovedPerlin()
+        public ImprovedPerlin()
         {
-            P = new int[512];
+            _doubledPermutation = new int[512];
             for (var x = 0; x < 512; x++)
             {
-                P[x] = Permutation[x % 256];
+                _doubledPermutation[x] = _permutation[x % 256];
             }
         }
 
-        public static double Noise(double x, double y)
+        public double Noise(double x, double y)
         {
             return Noise(x, y, 0d);
         }
 
-        public static double Noise(double x, double y, double z)
+        public double Noise(double x, double y, double z)
         {
             // Calculate the "unit cube" that the point asked will be located in
             var xi = (int)x & 255;
@@ -59,33 +59,33 @@ namespace ImprovedNoise.Noise
             var w = Fade(zf);
 
             // This here is Perlin's hash function.  We take our x value (remember,
-            var a = P[xi] + yi;
+            var a = _doubledPermutation[xi] + yi;
             // between 0 and 255) and get a random value (from our p[] array above) between
-            var aa = P[a] + zi;
+            var aa = _doubledPermutation[a] + zi;
             // 0 and 255.  We then add y to it and plug that into p[], and add z to that.
-            var ab = P[a + 1] + zi;
+            var ab = _doubledPermutation[a + 1] + zi;
             // Then, we get another random value by adding 1 to that and putting it into p[]
-            var b = P[xi + 1] + yi;
-            var ba = P[b] + zi;
+            var b = _doubledPermutation[xi + 1] + yi;
+            var ba = _doubledPermutation[b] + zi;
             // we plug aa, ab, ba, and bb back into p[] along with their +1's to get another set.
             // in the end we have 8 values between 0 and 255 - one for each vertex on the unit cube.
             // These are all interpolated together using u, v, and w below.
-            var bb = P[b + 1] + zi;
+            var bb = _doubledPermutation[b + 1] + zi;
 
             double x1, x2, y1, y2;
-            x1 = Lerp(Gradient(P[aa], xf, yf, zf),          // This is where the "magic" happens.  We calculate a new set of p[] values and use that to get
-                        Gradient(P[ba], xf - 1, yf, zf),            // our final gradient values.  Then, we interpolate between those gradients with the u value to get
+            x1 = Lerp(Gradient(_doubledPermutation[aa], xf, yf, zf),          // This is where the "magic" happens.  We calculate a new set of p[] values and use that to get
+                        Gradient(_doubledPermutation[ba], xf - 1, yf, zf),            // our final gradient values.  Then, we interpolate between those gradients with the u value to get
                         u);                                     // 4 x-values.  Next, we interpolate between the 4 x-values with v to get 2 y-values.  Finally,
-            x2 = Lerp(Gradient(P[ab], xf, yf - 1, zf),          // we interpolate between the y-values to get a z-value.
-                        Gradient(P[bb], xf - 1, yf - 1, zf),
+            x2 = Lerp(Gradient(_doubledPermutation[ab], xf, yf - 1, zf),          // we interpolate between the y-values to get a z-value.
+                        Gradient(_doubledPermutation[bb], xf - 1, yf - 1, zf),
                         u);                                     // When calculating the p[] values, remember that above, p[a+1] expands to p[xi]+yi+1 -- so you are
             y1 = Lerp(x1, x2, v);                               // essentially adding 1 to yi.  Likewise, p[ab+1] expands to p[p[xi]+yi+1]+zi+1] -- so you are adding
                                                                 // to zi.  The other 3 parameters are your possible return values (see grad()), which are actually
-            x1 = Lerp(Gradient(P[aa + 1], xf, yf, zf - 1),      // the vectors from the edges of the unit cube to the point in the unit cube itself.
-                        Gradient(P[ba + 1], xf - 1, yf, zf - 1),
+            x1 = Lerp(Gradient(_doubledPermutation[aa + 1], xf, yf, zf - 1),      // the vectors from the edges of the unit cube to the point in the unit cube itself.
+                        Gradient(_doubledPermutation[ba + 1], xf - 1, yf, zf - 1),
                         u);
-            x2 = Lerp(Gradient(P[ab + 1], xf, yf - 1, zf - 1),
-                        Gradient(P[bb + 1], xf - 1, yf - 1, zf - 1),
+            x2 = Lerp(Gradient(_doubledPermutation[ab + 1], xf, yf - 1, zf - 1),
+                        Gradient(_doubledPermutation[bb + 1], xf - 1, yf - 1, zf - 1),
                         u);
             y2 = Lerp(x1, x2, v);
 
@@ -102,7 +102,7 @@ namespace ImprovedNoise.Noise
         /// <param name="y">The y coordinate.</param>
         /// <param name="z">The z coordinate.</param>
         /// <exception cref="ArgumentOutOfRangeException">Out of range exception on invalid hash</exception>
-        private static double Gradient(int hash, double x, double y, double z)
+        private double Gradient(int hash, double x, double y, double z)
         {
             // switch statement has a speed improvement over the traditional logic by ken perlin.
             switch (hash & 0xF)
@@ -135,7 +135,7 @@ namespace ImprovedNoise.Noise
         /// </summary>
         /// <returns>The fade.</returns>
         /// <param name="t">T.</param>
-        private static double Fade(double t)
+        private double Fade(double t)
         {
             return t * t * t * (t * (t * 6 - 15) + 10);         // 6t^5 - 15t^4 + 10t^3
         }
@@ -147,7 +147,7 @@ namespace ImprovedNoise.Noise
         /// <param name="a">The alpha component.</param>
         /// <param name="b">The blue component.</param>
         /// <param name="x">The x coordinate.</param>
-        private static double Lerp(double a, double b, double x)
+        private double Lerp(double a, double b, double x)
         {
             return a + x * (b - a);
         }

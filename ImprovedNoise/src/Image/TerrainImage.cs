@@ -9,21 +9,22 @@ namespace ImprovedNoise.Image
     /// Create a terrain image.
     /// </summary>
     public class TerrainImage : PerlinImage
-    {
+    {   
         /// <summary>
         /// Construct a TerrainImage using width, height and the increment of perlin noise used in each pixel. 
         /// A smaller increment: e.g. 0.01, 0.001 will create a smooth biomes.
         /// A bigger increment: e.g. 1, 0.9 will create a rough biomes.
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="increment"></param>
-        public TerrainImage(int width, int height, double increment) : base(width, height, increment)
+        /// <param name="noise">INoise</param>
+        /// <param name="width">int</param>
+        /// <param name="height">int</param>
+        /// <param name="increment">double</param>
+        public TerrainImage(INoise noise, int width, int height, double increment) : base(noise, width, height, increment)
         {
-
+            
         }
 
-        public override IPixelCreator PixelCreator { get; set; } = new Earth();
+        public override IPixelCreator PixelCreator { get; } = new Earth();
 
         protected override Rgba32 CreatePixel()
         {
@@ -56,7 +57,7 @@ namespace ImprovedNoise.Image
         /// <returns>Double</returns>
         private double CalculatePartialElevation(double value)
         {
-            return value * ImprovedPerlin.Noise(CurrentXAxis, CurrentYAxis);
+            return value * NoiseAlgorithm.Noise(CurrentXAxis, CurrentYAxis);
         }
 
         /// <summary>

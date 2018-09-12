@@ -1,9 +1,8 @@
 ﻿using System;
+using ImprovedNoise.Noise;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using ImprovedNoise.Pixel;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
 
 namespace ImprovedNoise.Image
 {
@@ -18,6 +17,7 @@ namespace ImprovedNoise.Image
         protected double InitialYAxis { get; }
         protected double CurrentXAxis { get; private set; }
         protected double CurrentYAxis { get; private set; }
+        protected INoise NoiseAlgorithm { get; }
 
         protected Image<Rgba32> BaseImage;
 
@@ -26,10 +26,11 @@ namespace ImprovedNoise.Image
         /// <summary>
         /// Constructor. Setup the initial values.
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="increment"></param>
-        protected PerlinImage(int width, int height, double increment)
+        /// <param name="noise">INoise</param>
+        /// <param name="width">int</param>
+        /// <param name="height">int</param>
+        /// <param name="increment">double</param>
+        protected PerlinImage(INoise noise, int width, int height, double increment)
         {
             Width = width;
             Height = height;
@@ -38,6 +39,7 @@ namespace ImprovedNoise.Image
             InitialYAxis = GenerateRandom();
             CurrentXAxis = InitialXAxis;
             CurrentYAxis = InitialYAxis;
+            NoiseAlgorithm = noise;
         }
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace ImprovedNoise.Image
         /// Generate a random position
         /// </summary>
         /// <returns>Double</returns>
-        protected double GenerateRandom()
+        private double GenerateRandom()
         {
             return _seed.NextDouble() * _seed.Next();
         }
@@ -95,8 +97,12 @@ namespace ImprovedNoise.Image
             CurrentYAxis += Increment;
         }
 
+        /// <summary>
+        /// Create and return a Rgba32 pixel object.
+        /// </summary>
+        /// <returns>Rgba32</returns>
         protected abstract Rgba32 CreatePixel();
 
-        public abstract IPixelCreator PixelCreator { get; set; }
+        public abstract IPixelCreator PixelCreator { get; }
     }
 }
