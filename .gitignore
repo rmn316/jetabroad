@@ -1,0 +1,10 @@
+.DS_Store
+[Pp]ackages
+
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Visual Studio 2015 cache/options directory
+.vs/
